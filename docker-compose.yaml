@@ -1,0 +1,37 @@
+version: "3.9"
+
+networks:
+  local-workers:
+    name: decorators
+    driver: bridge
+
+volumes:
+  rabbitmq-volume:
+    name: rabbitmq-volume
+
+services:
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3.9.13-management
+    restart: unless-stopped
+    environment:
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_HOST: 127.0.0.1
+      RABBITMQ_PORT: 5672
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: guest
+      RABBIT_DB_MANAGER_ENABLE: 0
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - decorators
+    volumes:
+      - rabbitmq-volume:/var/lib/rabbitmq
+    hostname: rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "is_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
