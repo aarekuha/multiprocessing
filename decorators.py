@@ -10,10 +10,11 @@ from process_manager import (
 )
 
 from periodic_queue_listener import PeriodicQueueListener
+from another import custom_function
 
 
 class Decorators:
-    _funcs: Dict[str, Callable] = {}
+    _funcs: Dict[str, Callable] = {'first_route': custom_function}
 
     @classmethod
     def action(cls, route):
@@ -22,7 +23,6 @@ class Decorators:
         return decorator
 
     def __init__(self):
-        super().__init__()
         parameters = pika.URLParameters('amqp://guest:guest@localhost:5672')
         self._connection = pika.BlockingConnection(parameters)
         self._channel = self._connection.channel()
@@ -87,8 +87,6 @@ class Decorators:
         return self._output_queue.get()
 
     def stop(self):
-        self._connection.close()
-
         if self._process_manager.is_alive():
             self._process_manager.stop()
             self._process_manager.join()
@@ -96,3 +94,5 @@ class Decorators:
         if self._periodic_listener.is_alive():
             self._periodic_listener.stop()
             self._periodic_listener.join()
+
+        self._connection.close()
