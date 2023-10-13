@@ -10,15 +10,14 @@ from process_manager import (
 )
 
 from periodic_queue_listener import PeriodicQueueListener
+from outer_decorators import OuterDecorators
 
 
 class Decorators:
-    _funcs: Dict[str, Callable] = {}
-
     @classmethod
     def action(cls, route):
         def decorator(func):
-            cls._funcs[route] = func
+            OuterDecorators._funcs[route] = func
         return decorator
 
     def __init__(self):
@@ -76,7 +75,7 @@ class Decorators:
         try:
             self._input_queue.put(
                 CommandTransferObject(
-                    callback=self._funcs[route],
+                    callback=route,
                     args=[],
                     kwargs={'periodic_queue': self._periodic_queue},
                 )
@@ -87,8 +86,6 @@ class Decorators:
         return self._output_queue.get()
 
     def stop(self):
-        self._connection.close()
-
         if self._process_manager.is_alive():
             self._process_manager.stop()
             self._process_manager.join()
@@ -96,3 +93,4 @@ class Decorators:
         if self._periodic_listener.is_alive():
             self._periodic_listener.stop()
             self._periodic_listener.join()
+        self._connection.close()

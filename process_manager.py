@@ -11,6 +11,8 @@ from contextlib import suppress
 from threading import Thread
 from dataclasses import dataclass
 
+from outer_decorators import OuterDecorators
+
 
 class ExitCommand:
     """Команда на останов потока после завершения обработки текущим процессом"""
@@ -19,7 +21,7 @@ class ExitCommand:
 @dataclass
 class CommandTransferObject:
     """Объект передачи вызова в созданный процесс"""
-    callback: Callable  # Вызываемая функция/метод
+    callback: str  # Вызываемая функция/метод
     args: list[Any]  # Аргументы функции/метода
     kwargs: dict[str, Any]  # Именованные аргументы функции/метода
 
@@ -61,7 +63,8 @@ class ProcessManager(Thread):
                     continue
                 elif isinstance(input_args, CommandTransferObject):
                     cto = input_args
-                    output_queue.put(cto.callback(*cto.args, **cto.kwargs))
+                    callback = OuterDecorators._funcs[cto.callback]
+                    output_queue.put(callback(*cto.args, **cto.kwargs))
                 else:
                     logging.error(f"Invalid input command message: {input_args=}")
 
